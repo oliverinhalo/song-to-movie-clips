@@ -159,6 +159,40 @@ forwarding, no public reverse proxy) - Tailscale's private network is all
 you need for phone access, and it avoids exposing a tool that downloads
 copyrighted media to anyone but you.
 
+## Running it as a service (auto-start, auto-restart, auto-update)
+
+To have the Pi run this permanently - starting on boot, restarting if it
+crashes, and pulling + restarting whenever `main` gets new commits - use two
+systemd units: one for the app itself (`Restart=always` handles crashes),
+and a timer that periodically checks for new commits and restarts the app
+when it finds any (systemd has no built-in "watch a git remote", so this is
+the standard lightweight way to do it without extra daemons).
+
+All commands below are meant to be run over SSH on the Pi. Full step-by-step
+commands (deploy key setup, the service/timer unit files, sudoers entry) are
+in the setup conversation this README came from - ask for them again if you
+need the exact copy-paste sequence. In short, the pieces are:
+
+- `song-to-movie.service` - runs `python -m song_to_movie.webapp` with
+  `Restart=always`, `WorkingDirectory` set to the repo, work_root pointed
+  *outside* the repo (e.g. `~/song-to-movie-runs`) so uploaded audio/lyrics
+  never end up inside the git working tree.
+- `scripts/update.sh` - `git fetch`, compares `HEAD` to `origin/main`, and
+  only if they differ: `git pull --ff-only`, reinstall the package, then
+  `sudo systemctl restart song-to-movie.service`. A narrowly-scoped sudoers
+  rule (NOPASSWD for exactly that one `systemctl restart` command) lets the
+  update script restart the app without needing to run as root itself.
+- `song-to-movie-update.timer` - runs `update.sh` every few minutes.
+
+Check on it with:
+
+```bash
+systemctl status song-to-movie.service --no-pager
+journalctl -u song-to-movie.service -f
+systemctl list-timers song-to-movie-update.timer
+journalctl -u song-to-movie-update.service -f
+```
+
 ## Tests
 
 The alignment fallback, timeline-building, and clip-search HTML parser are
