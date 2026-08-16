@@ -3,8 +3,12 @@ __pycache__/
 .venv/
 *.egg-info/
 
-# pipeline run output: downloaded clips, separated stems, rendered video
+# pipeline run output: downloaded clips, separated stems, rendered video,
+# and uploads made through the web app (defensive - the deploy instructions
+# put the web app's work_root outside this repo entirely, but this covers
+# anyone running it with the default relative path from inside a checkout)
 output/
+runs/
 clip_cache/
 stems/
 *.wav
