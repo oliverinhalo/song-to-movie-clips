@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+
+# pipeline run output: downloaded clips, separated stems, rendered video
+output/
+clip_cache/
+stems/
+*.wav
+*.mp4
+*.part

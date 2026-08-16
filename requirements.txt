@@ -1,0 +1,12 @@
+# Core pipeline dependencies (see pyproject.toml for the same list plus
+# optional extras). ffmpeg/ffprobe are also required but must be installed
+# as a system package, not via pip.
+requests>=2.31
+beautifulsoup4>=4.12
+flask>=3.0
+
+# Optional, heavier extras - install with:
+#   pip install -e ".[alignment,separation]"
+# torch>=2.1
+# torchaudio>=2.1
+# demucs>=4.0

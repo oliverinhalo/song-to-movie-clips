@@ -1,0 +1,28 @@
+<!--
+  Synthetic fixture for parser unit tests only. This is NOT a copy of a
+  real getyarn.io response - live requests to getyarn.io are blocked by
+  Cloudflare from this environment (see YarnBlockedError). This
+  hand-written page exercises the parser's generic <video>/<source>
+  extraction logic against placeholder data only.
+-->
+<html>
+  <body>
+    <ul id="results">
+      <li class="yarn-item">
+        <a href="/yarn-clip/abc123">
+          <video poster="/img/abc123.jpg">
+            <source src="//cdn.example.test/yarn-clip/mp4/abc123.mp4" type="video/mp4">
+          </video>
+          <span class="yarn-title">Example Movie (2000)</span>
+          <p class="yarn-quote">placeholder quote text</p>
+        </a>
+      </li>
+      <li class="yarn-item">
+        <a href="/yarn-clip/def456">
+          <video src="/yarn-clip/mp4/def456.mp4"></video>
+          <span class="yarn-title">Another Example Show</span>
+        </a>
+      </li>
+    </ul>
+  </body>
+</html>

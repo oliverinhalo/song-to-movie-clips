@@ -1,0 +1,47 @@
+body {
+  font-family: system-ui, sans-serif;
+  max-width: 640px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  color: #222;
+}
+
+video {
+  width: 100%;
+  background: #000;
+  border-radius: 8px;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.transport {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.transport button {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+#status {
+  font-size: 0.9rem;
+  color: #444;
+}

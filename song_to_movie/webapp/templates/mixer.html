@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>song_to_movie mixer</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='mixer.css') }}">
+</head>
+<body>
+  <h1>Blend your track</h1>
+  <p>Preview the movie clips against your song's vocal and instrumental stems, then export the mix you like.</p>
+
+  <video id="clips" src="/media/clips" muted></video>
+
+  <audio id="vocals" src="/media/vocals"></audio>
+  <audio id="instrumental" src="/media/instrumental"></audio>
+
+  <div class="controls">
+    <label>Movie clip audio
+      <input type="range" id="clips-vol" min="0" max="1.5" step="0.01" value="1">
+    </label>
+    <label>Vocals
+      <input type="range" id="vocals-vol" min="0" max="1.5" step="0.01" value="1">
+    </label>
+    <label>Instrumental
+      <input type="range" id="instrumental-vol" min="0" max="1.5" step="0.01" value="1">
+    </label>
+  </div>
+  <p class="hint">Sliders go above 1x for the exported file; live in-browser preview is capped at 1x (a browser limitation).</p>
+
+  <div class="transport">
+    <button id="play">Play</button>
+    <button id="pause">Pause</button>
+    <button id="export">Export mix</button>
+  </div>
+  <p id="status"></p>
+
+  <script src="{{ url_for('static', filename='mixer.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "song-to-movie"
+version = "0.1.0"
+description = "Turn a song into a video of movie clips, one per lyric word, timed to the vocal - with the original vocal and instrumental kept as separately mixable stems."
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.31",
+    "beautifulsoup4>=4.12",
+    "flask>=3.0",
+]
+
+[project.optional-dependencies]
+alignment = ["torch>=2.1", "torchaudio>=2.1"]
+separation = ["demucs>=4.0"]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+song-to-movie = "song_to_movie.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["song_to_movie*"]
