@@ -18,8 +18,11 @@ sudo apt update
 # rustc/cargo: some of the audio ML stack's dependencies (e.g. sphn) ship
 # as Rust extensions with no prebuilt wheel for every Pi/Python
 # combination, so pip falls back to compiling them via maturin - which
-# needs a Rust toolchain present to succeed.
-sudo apt install -y ffmpeg python3-venv python3-pip git rustc cargo
+# needs a Rust toolchain present to succeed. cmake/build-essential/
+# pkg-config: that same build compiles a bundled C library from source,
+# which needs an actual C toolchain and cmake binary on PATH, not just
+# cargo.
+sudo apt install -y ffmpeg python3-venv python3-pip git rustc cargo cmake build-essential pkg-config
 
 echo "==> fetching song_to_movie"
 if [ -d "$REPO_DIR/.git" ]; then
