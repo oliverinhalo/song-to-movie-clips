@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}song_to_movie{% endblock %}
+{% block content %}
+  <h1>New run</h1>
+  <form method="post" action="{{ url_for('create_run') }}" enctype="multipart/form-data">
+    <label>Title (optional)
+      <input type="text" name="title" placeholder="e.g. my song">
+    </label>
+    <label>Song audio file
+      <input type="file" name="song" accept="audio/*" required>
+    </label>
+    <label>Lyrics (your own transcript)
+      <textarea name="lyrics" rows="8" placeholder="Paste your lyrics here" required></textarea>
+    </label>
+    <button type="submit">Start processing</button>
+  </form>
+
+  <h2>Previous runs</h2>
+  {% if runs %}
+    <ul class="run-list">
+      {% for run in runs %}
+        <li>
+          <a href="{{ url_for('show_run', run_id=run.id) }}">{{ run.title }}</a>
+          <span class="run-status status-{{ run.status }}">{{ run.status }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No runs yet.</p>
+  {% endif %}
+{% endblock %}

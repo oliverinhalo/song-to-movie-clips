@@ -1,8 +1,14 @@
 from __future__ import annotations
 
+import shutil
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
+
+
+def _require_ffmpeg() -> None:
+    if shutil.which("ffmpeg") is None:
+        raise RuntimeError("ffmpeg is not installed or not on PATH.")
 
 
 @dataclass
@@ -30,6 +36,7 @@ def render_mix(
     instrumental stems at independently adjustable volumes, producing one
     final video with the clip video's picture.
     """
+    _require_ffmpeg()
     filter_complex = (
         f"[0:a]volume={levels.clips}[a0];"
         f"[1:a]volume={levels.vocals}[a1];"

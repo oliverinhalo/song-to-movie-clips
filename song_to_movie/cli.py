@@ -4,7 +4,7 @@ import argparse
 import logging
 import subprocess
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Callable, Dict, Optional
 
 from .alignment import even_split_alignment, forced_align, tokenize_lyrics
 from .clip_cache import download_clip
@@ -46,30 +46,39 @@ def run_pipeline(
     yarn_cookies: Optional[Dict[str, str]] = None,
     mix_levels: MixLevels = MixLevels(),
     render_default_mix: bool = True,
+    on_progress: Optional[Callable[[str], None]] = None,
 ) -> Path:
     """Run the full song -> movie-clip video pipeline.
 
     Returns the path to the final mixed video (or, if `render_default_mix`
     is False, the path to the clip-only assembly, so a caller such as the
     interactive web mixer can produce the final mix itself once the user
-    has chosen volume levels).
+    has chosen volume levels). `on_progress`, if given, is called with a
+    short human-readable stage description at each major step - the web
+    app uses this to show live progress for a run kicked off from a phone.
     """
+
+    def report(stage: str) -> None:
+        log.info(stage)
+        if on_progress:
+            on_progress(stage)
+
     out_dir.mkdir(parents=True, exist_ok=True)
     lyrics_text = lyrics_path.read_text()
     words = tokenize_lyrics(lyrics_text)
     if not words:
         raise ValueError(f"no words found in {lyrics_path}")
 
-    log.info("separating vocals/instrumental with demucs (%s)...", demucs_model)
+    report(f"separating vocals/instrumental with demucs ({demucs_model})...")
     stems = separate_stems(song_path, out_dir / "stems", model=demucs_model)
 
-    log.info("aligning %d lyric words to the vocal track...", len(words))
+    report(f"aligning {len(words)} lyric words to the vocal track...")
     if use_forced_alignment:
         aligned = forced_align(stems.vocals, words)
     else:
         aligned = even_split_alignment(words, _audio_duration(stems.vocals))
 
-    log.info("searching getyarn.io for a movie clip per word...")
+    report("searching getyarn.io for a movie clip per word...")
     client = YarnClient(cookies=yarn_cookies)
     clip_cache_dir = out_dir / "clip_cache"
     clip_lookup: Dict[str, Optional[YarnResult]] = {}
@@ -99,18 +108,16 @@ def run_pipeline(
         clip_path_for=lambda result: clip_paths.get(result.query) if result else None,
     )
     segments = resolve_missing_clips(segments, strategy="hold_previous")
-    log.info("matched clips for %.0f%% of lyric words", coverage_ratio(segments) * 100)
+    report(f"matched clips for {coverage_ratio(segments) * 100:.0f}% of lyric words")
 
+    report("assembling clip video...")
     clip_video = assemble_video(segments, out_dir / "assembly", out_dir / "clips_only.mp4")
 
     if not render_default_mix:
-        log.info(
-            "skipping default mix; run `python -m song_to_movie.webapp %s` "
-            "to blend vocals/instrumental/clips interactively",
-            out_dir,
-        )
+        report("ready to mix")
         return clip_video
 
+    report("rendering final mix...")
     final_path = render_mix(
         clip_video,
         stems.vocals,
@@ -118,7 +125,7 @@ def run_pipeline(
         out_dir / "final.mp4",
         levels=mix_levels,
     )
-    log.info("done: %s", final_path)
+    report("done")
     return final_path
 
 

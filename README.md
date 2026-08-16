@@ -17,6 +17,11 @@ song.mp3 + lyrics.txt
    └─ mixer.py + webapp → blend clip audio / vocals / instrumental → final.mp4
 ```
 
+The web app (`song_to_movie/webapp/`) runs the whole pipeline itself from an
+upload - it's the easiest way to use this from a phone, with the actual
+processing happening on a machine that has ffmpeg/Demucs/torch installed
+(a Raspberry Pi, a desktop, whatever you run it on).
+
 ## Before you use this
 
 - Only run this on audio and lyrics **you have the rights to use** - your
@@ -76,6 +81,8 @@ you'll use `--no-forced-alignment`'s dependency-free fallback aligner.
 
 ## Usage
 
+### Option A: command line
+
 ```bash
 song-to-movie path/to/song.mp3 path/to/lyrics.txt --out output/ -v
 ```
@@ -91,18 +98,66 @@ This will:
 6. Mix the clip audio with the vocal/instrumental stems (`--vocals-vol`,
    `--instrumental-vol`, `--clips-vol`) into `output/final.mp4`.
 
-To blend interactively instead of picking fixed volumes up front:
+### Option B: the web app (upload from your phone, process elsewhere)
 
 ```bash
-song-to-movie path/to/song.mp3 path/to/lyrics.txt --out output/ --no-default-mix
-python -m song_to_movie.webapp output/
+python -m song_to_movie.webapp runs/ --host 0.0.0.0 --port 5000
 ```
 
-Then open `http://localhost:5000` - it previews the clip video, vocal
-track, and instrumental track together with a volume slider each, and an
-**Export mix** button that renders `output/final_mix.mp4` with ffmpeg at
-whatever levels you chose (sliders can go above 1x in the exported file,
-even though live browser preview is capped at unity gain).
+Open `http://<the-machine's-address>:5000` in a browser (see below for
+reaching it from your phone). From there you can:
+
+1. Upload a song file and paste its lyrics - no CLI/SSH access needed.
+2. Watch it process (the page polls status and shows the current stage).
+3. Once done, preview the clip video against the vocal/instrumental stems
+   with an independent volume slider each, and hit **Export mix** to render
+   the blend with ffmpeg (sliders can go above 1x in the exported file,
+   even though live browser preview is capped at unity gain - a browser
+   limitation, not this app's).
+4. Download the result from the link the export gives you.
+
+Each run's uploads and output live under `runs/<run_id>/`; the run list on
+the home page survives a server restart (it's reconstructed from what's on
+disk), though progress on a run that was still processing when the server
+stopped is lost.
+
+## Running it from your phone (Raspberry Pi + Tailscale)
+
+This is the right setup for phone use: the pipeline needs ffmpeg, Demucs
+(PyTorch), and real disk space for clip downloads, none of which a phone
+can do - so run the web app on the Pi and just reach it from your phone's
+browser.
+
+**You don't need nginx or a Cloudflare tunnel for this.** Tailscale already
+gives your phone a private, encrypted connection straight to the Pi; a
+public-facing reverse proxy would only be needed if you wanted this
+reachable from the open internet, which isn't necessary for personal use -
+and this tool operates on copyrighted movie/song material as input, so
+keeping it off the public internet entirely is also the safer default. (If
+"nginx + Cloudflare" was about a *different*, unrelated self-hosting setup
+you already run on the Pi - e.g. Cloudflare Tunnel for other services - note
+that's a separate thing from the Cloudflare bot-protection getyarn.io itself
+uses, described above; you don't need to combine the two.)
+
+1. Install Tailscale on the Pi and on your phone, and sign in to the same
+   Tailscale account on both (`https://tailscale.com/download`).
+2. On the Pi, run the web app bound to all interfaces so Tailscale can
+   reach it:
+   ```bash
+   python -m song_to_movie.webapp runs/ --host 0.0.0.0 --port 5000
+   ```
+3. On your phone (with the Tailscale app connected), open
+   `http://<pi-tailscale-name>:5000` - the Tailscale app shows the Pi's
+   MagicDNS name (or `tailscale ip` on the Pi gives its Tailscale IP if you
+   prefer that).
+4. Optional: for HTTPS without any extra infrastructure, `tailscale serve
+   https / 5000` on the Pi puts the app behind Tailscale's own MagicDNS
+   HTTPS certificate - still tailnet-only, nothing exposed publicly.
+
+Keep the web app itself off the public internet (no Funnel, no port
+forwarding, no public reverse proxy) - Tailscale's private network is all
+you need for phone access, and it avoids exposing a tool that downloads
+copyrighted media to anyone but you.
 
 ## Tests
 
