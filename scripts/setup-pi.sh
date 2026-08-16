@@ -15,7 +15,11 @@ SERVICE_USER="$USER"
 
 echo "==> installing system packages"
 sudo apt update
-sudo apt install -y ffmpeg python3-venv python3-pip git
+# rustc/cargo: some of the audio ML stack's dependencies (e.g. sphn) ship
+# as Rust extensions with no prebuilt wheel for every Pi/Python
+# combination, so pip falls back to compiling them via maturin - which
+# needs a Rust toolchain present to succeed.
+sudo apt install -y ffmpeg python3-venv python3-pip git rustc cargo
 
 echo "==> fetching song_to_movie"
 if [ -d "$REPO_DIR/.git" ]; then
@@ -24,7 +28,10 @@ else
   git clone "$REPO_URL" "$REPO_DIR"
 fi
 
-echo "==> python environment (this can take a while on a Pi - torch/demucs)"
+echo "==> python environment (this can take a while on a Pi - torch/demucs, plus compiling any Rust extensions from source)"
+# If this step gets killed with no clear error on a low-RAM Pi (1-2GB),
+# that's usually the Rust compiler running out of memory - add swap first:
+#   sudo dphys-swapfile swapoff && sudo sed -i 's/CONF_SWAPSIZE=.*/CONF_SWAPSIZE=2048/' /etc/dphys-swapfile && sudo dphys-swapfile setup && sudo dphys-swapfile swapon
 cd "$REPO_DIR"
 python3 -m venv .venv
 source .venv/bin/activate
